@@ -15,7 +15,7 @@ struct DetectedObject: Identifiable {
 
 // MARK: - Detection Manager
 // Runs YOLOv8n inference via Vision and computes monocular distance
-// using the ray-ground intersection method from the paper.
+// using the ray-ground intersection method
 final class DetectionManager {
     static let shared = DetectionManager()
 
@@ -120,7 +120,7 @@ final class DetectionManager {
     }
 
     // MARK: - Monocular Ray-Ground Intersection Distance
-    // Implements the geometric fallback from the paper:
+    // Implements the geometric fallback:
     // bottom-center pixel → normalized image coord → camera ray →
     // world ray → intersect with Y = -h ground plane → forward distance Z
     private func computeDistance(
@@ -154,7 +154,7 @@ final class DetectionManager {
         // --- 4. Camera-frame ray direction (pinhole model) ---
         // ARKit camera frame: X right, Y up, Z backward (toward viewer)
         // Standard pinhole: Z forward → we negate Z to match ARKit convention
-        let rayCamera = simd_float3(xn, yn, 1.0)
+        let rayCamera = simd_float3(xn, yn, -1.0)
 
         // --- 5. Transform ray to world frame using ARKit rotation ---
         // cameraTransform is a 4x4 column-major matrix; upper-left 3x3 is rotation R
@@ -182,14 +182,14 @@ final class DetectionManager {
         let denom = rayWorld.y
         guard abs(denom) > 1e-6 else {
             // Ray nearly horizontal — cannot intersect ground reliably
-            return estimateFallbackFromBboxSize(bbox: bbox, fx: fx, cameraHeight: cameraHeight)
+            return 0.0
         }
 
         let t = (groundY - camPos.y) / denom
 
         guard t > 0.1 else {
             // Intersection behind camera — use fallback
-            return estimateFallbackFromBboxSize(bbox: bbox, fx: fx, cameraHeight: cameraHeight)
+            return 0.0
         }
 
         // Intersection point in world frame
@@ -202,17 +202,5 @@ final class DetectionManager {
 
         // Clamp to sane range [0.3m, 20m]
         return max(0.3, min(20.0, distance))
-    }
-
-    // MARK: - Fallback: angular size heuristic when ray-ground fails
-    // Uses apparent width + known average object height as crude estimate
-    private func estimateFallbackFromBboxSize(bbox: CGRect, fx: Float, cameraHeight: Float) -> Float {
-        // Use camera height as a proxy for scene scale
-        // This is rough but better than returning 0
-        let bboxHeightFraction = Float(bbox.height)
-        guard bboxHeightFraction > 0.01 else { return 5.0 }
-        // Assume average obstacle height ~ cameraHeight (heuristic)
-        let estimatedDist = cameraHeight / (bboxHeightFraction * (fx / 500.0))
-        return max(0.3, min(20.0, estimatedDist))
     }
 }

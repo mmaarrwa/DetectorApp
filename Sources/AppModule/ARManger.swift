@@ -16,10 +16,13 @@ final class ARManager: NSObject, ObservableObject, ARSessionDelegate {
     // MARK: - AR Scene View (same pattern as working app)
     let sceneView: ARSCNView = {
         let v = ARSCNView(frame: .zero)
+        //lights the virtual3d objects so for saving the battery i will keep it
+        //false till i choose to put 3d objects in the scene like at a manhole or someting (just if)
         v.autoenablesDefaultLighting = false
         // Show feature points so user can see tracking quality
         v.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
-        v.rendersContinuously = true
+        //force to redraw every frame ->maybe will end up heating the phone
+        v.rendersContinuously = false
         return v
     }()
 
