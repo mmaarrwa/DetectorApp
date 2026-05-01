@@ -195,7 +195,7 @@ struct DetectionOverlay: View {
                 context.stroke(path, with: .color(color), lineWidth: 2.5)
 
                 // Draw filled label background
-                let label = "\(det.label)  \(String(format: "%.1f", det.distanceMeters)) m"
+                let label = "\(det.label) \(String(format: "%.1f", det.distanceMeters))m [\(det.distanceMethod)]"
                 let fontSize: CGFloat = 13
                 let padding: CGFloat = 5
                 let textSize = labelTextSize(label, fontSize: fontSize)

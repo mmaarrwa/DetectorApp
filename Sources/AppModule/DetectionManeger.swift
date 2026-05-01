@@ -11,6 +11,7 @@ struct DetectedObject: Identifiable {
     let confidence: Float
     let normalizedRect: CGRect   // Vision normalized rect (bottom-left origin)
     let distanceMeters: Float
+    let distanceMethod: String
 }
 
 // MARK: - Detection Manager
@@ -109,7 +110,8 @@ final class DetectionManager {
                 label: top.identifier,
                 confidence: top.confidence,
                 normalizedRect: bbox,
-                distanceMeters: distance
+                distanceMeters: distance,
+                distanceMethod: "M4"
             )
             detections.append(det)
         }
